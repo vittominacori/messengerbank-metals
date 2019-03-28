@@ -9,8 +9,9 @@ import "./MBMTimelock.sol";
  * @dev This contract will allow a owner to create new MBMTimelock
  */
 contract MBMLockBuilder is TokenRecover {
+    using SafeERC20 for IERC20;
 
-    event LockCreated(address indexed timelock, address indexed beneficiary, uint256 releaseTime);
+    event LockCreated(address indexed timelock, address indexed beneficiary, uint256 releaseTime, uint256 amount);
 
     // ERC20 basic token contract being held
     IERC20 private _token;
@@ -27,11 +28,16 @@ contract MBMLockBuilder is TokenRecover {
     /**
      * @param beneficiary Who will receive the tokens after they are released
      * @param releaseTime Timestamp when token release is enabled
+     * @param amount The number of tokens to be locked for this contract
      */
-    function createLock(address beneficiary, uint256 releaseTime) external onlyOwner {
+    function createLock(address beneficiary, uint256 releaseTime, uint256 amount) external onlyOwner {
         MBMTimelock lock = new MBMTimelock(_token, beneficiary, releaseTime);
 
-        emit LockCreated(address(lock), beneficiary, releaseTime);
+        if (amount > 0) {
+            _token.safeTransfer(address(lock), amount);
+        }
+
+        emit LockCreated(address(lock), beneficiary, releaseTime, amount);
     }
 
     /**
