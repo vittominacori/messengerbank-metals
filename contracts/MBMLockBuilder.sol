@@ -33,11 +33,11 @@ contract MBMLockBuilder is TokenRecover {
     function createLock(address beneficiary, uint256 releaseTime, uint256 amount) external onlyOwner {
         MBMTimelock lock = new MBMTimelock(_token, beneficiary, releaseTime);
 
+        emit LockCreated(address(lock), beneficiary, releaseTime, amount);
+
         if (amount > 0) {
             _token.safeTransfer(address(lock), amount);
         }
-
-        emit LockCreated(address(lock), beneficiary, releaseTime, amount);
     }
 
     /**
