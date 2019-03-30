@@ -5,7 +5,6 @@ import "./MBMTimelock.sol";
 
 /**
  * @title MBMLockBuilder
- * @author Vittorio Minacori (https://github.com/vittominacori)
  * @dev This contract will allow a owner to create new MBMTimelock
  */
 contract MBMLockBuilder is TokenRecover {
@@ -29,9 +28,18 @@ contract MBMLockBuilder is TokenRecover {
      * @param beneficiary Who will receive the tokens after they are released
      * @param releaseTime Timestamp when token release is enabled
      * @param amount The number of tokens to be locked for this contract
+     * @param note A text string to add a note
      */
-    function createLock(address beneficiary, uint256 releaseTime, uint256 amount) external onlyOwner {
-        MBMTimelock lock = new MBMTimelock(_token, beneficiary, releaseTime);
+    function createLock(
+        address beneficiary,
+        uint256 releaseTime,
+        uint256 amount,
+        string calldata note
+    )
+        external
+        onlyOwner
+    {
+        MBMTimelock lock = new MBMTimelock(_token, beneficiary, releaseTime, note);
 
         emit LockCreated(address(lock), beneficiary, releaseTime, amount);
 

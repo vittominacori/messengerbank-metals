@@ -17,6 +17,7 @@ contract('MBMLockBuilder', function ([owner, beneficiary, thirdParty]) {
 
   context('with token', function () {
     const amount = new BN(100);
+    const note = 'your custom text';
 
     beforeEach(async function () {
       this.token = await ERC20Mock.new(owner, amount);
@@ -42,7 +43,7 @@ contract('MBMLockBuilder', function ([owner, beneficiary, thirdParty]) {
               const futureReleaseTime = (await time.latest()).add(time.duration.years(1));
 
               await shouldFail.reverting(
-                this.builder.createLock(beneficiary, futureReleaseTime, amount, { from: thirdParty })
+                this.builder.createLock(beneficiary, futureReleaseTime, amount, note, { from: thirdParty })
               );
             });
           });
@@ -51,7 +52,7 @@ contract('MBMLockBuilder', function ([owner, beneficiary, thirdParty]) {
             it('rejects a release time in the past', async function () {
               const pastReleaseTime = (await time.latest()).sub(time.duration.years(1));
               await shouldFail.reverting(
-                this.builder.createLock(beneficiary, pastReleaseTime, amount, { from: owner })
+                this.builder.createLock(beneficiary, pastReleaseTime, amount, note, { from: owner })
               );
             });
 
@@ -65,7 +66,7 @@ contract('MBMLockBuilder', function ([owner, beneficiary, thirdParty]) {
                   beforeEach(async function () {
                     ({
                       logs: this.logs,
-                    } = await this.builder.createLock(beneficiary, this.releaseTime, new BN(0), { from: owner }));
+                    } = await this.builder.createLock(beneficiary, this.releaseTime, new BN(0), note, { from: owner }));
 
                     this.logs.filter(e => e.event === 'LockCreated').find(e => {
                       this.lockAddress = e.args.timelock;
@@ -87,6 +88,10 @@ contract('MBMLockBuilder', function ([owner, beneficiary, thirdParty]) {
                     it('timelock token balance should zero', async function () {
                       (await this.token.balanceOf(this.timelock.address)).should.be.bignumber.equal(new BN(0));
                     });
+
+                    it('should have note right set', async function () {
+                      (await this.timelock.note()).should.be.equal(note);
+                    });
                   });
                 });
 
@@ -94,7 +99,7 @@ contract('MBMLockBuilder', function ([owner, beneficiary, thirdParty]) {
                   beforeEach(async function () {
                     ({
                       logs: this.logs,
-                    } = await this.builder.createLock(beneficiary, this.releaseTime, amount, { from: owner }));
+                    } = await this.builder.createLock(beneficiary, this.releaseTime, amount, note, { from: owner }));
 
                     this.logs.filter(e => e.event === 'LockCreated').find(e => {
                       this.lockAddress = e.args.timelock;
@@ -117,6 +122,10 @@ contract('MBMLockBuilder', function ([owner, beneficiary, thirdParty]) {
                       (await this.token.balanceOf(this.timelock.address)).should.be.bignumber.equal(amount);
                     });
 
+                    it('should have note right set', async function () {
+                      (await this.timelock.note()).should.be.equal(note);
+                    });
+
                     shouldBehaveLikeTokenTimelock(beneficiary, amount);
                   });
                 });
@@ -130,7 +139,7 @@ contract('MBMLockBuilder', function ([owner, beneficiary, thirdParty]) {
             const futureReleaseTime = (await time.latest()).add(time.duration.years(1));
 
             await shouldFail.reverting(
-              this.builder.createLock(beneficiary, futureReleaseTime, amount, { from: owner })
+              this.builder.createLock(beneficiary, futureReleaseTime, amount, note, { from: owner })
             );
           });
         });
